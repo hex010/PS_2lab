@@ -9,46 +9,34 @@ import java.util.Scanner;
 
 public class Map {
     GamePanel gamePanel;
-
-
     Tile[][] tiles;
 
-    public Map(GamePanel g) {
-        this.gamePanel = g;
-        tiles = new Tile[g.getMaxScreenRow()][g.getMaxScreenColumn()];
-        ReadMap();
+    public Map(GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+        tiles = new Tile[gamePanel.getMaxScreenRow()][gamePanel.getMaxScreenColumn()];
+        readMap();
     }
 
-    private void ReadMap() {
+    private void readMap() {
         try {
             int x = 0;
             int y = 0;
-            Scanner input = new Scanner(new File("resources/map.txt"));
+            
+            String filePath = "resources/map.txt";
+            Scanner input = new Scanner(new File(filePath));
 
             for(int i = 0; i < gamePanel.getMaxScreenRow(); i++){
                 for(int j = 0; j < gamePanel.getMaxScreenColumn(); j++){
                     if(input.hasNextInt()){
                         int tileType = input.nextInt();
-
-                        switch (tileType){
-                            case 0: {
-                                tiles[i][j] = new Tile(x, y, tileType, null, false); break;
-                            }
-                            case 1: {
-                                BufferedImage tileImage = ImageIO.read(new FileInputStream("resources/wall.bmp"));
-                                tiles[i][j] = new Tile(x, y, tileType, tileImage, true); break;
-                            }
-                            default: {
-                                tiles[i][j] = new Tile(x, y, 0, null, false);
-                            }
-                        }
-
+                        addTile(x, y, i, j, tileType);
                         x += gamePanel.getTileSize();
                     }
                 }
                 y += gamePanel.getTileSize();
                 x = 0;
             }
+            input.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -65,11 +53,20 @@ public class Map {
         }
     }
 
-
-
-
-    public void updateMap(int x, int y) {
-        // todo
+    private void addTile(int x, int y, int i, int j, int tileType) throws IOException {
+        switch (tileType){
+            case 0: {
+                tiles[i][j] = new Tile(x, y, tileType, null, false); break;
+            }
+            case 1: {
+                String filePath = "resources/wall.bmp";
+                BufferedImage tileImage = ImageIO.read(new FileInputStream(filePath));
+                tiles[i][j] = new Tile(x, y, tileType, tileImage, true); break;
+            }
+            default: {
+                tiles[i][j] = new Tile(x, y, 0, null, false);
+            }
+        }
     }
 
     public void clearMap() {
@@ -78,22 +75,23 @@ public class Map {
                 try {
                     tiles[i][j].setType(0);
                 } catch (Exception e) {
+                    System.out.println("Nepavyko nustatyti type 0 tile " + i + ", " + j);
                 }
             }
         }
     }
 
 
-
-
     public Tile getTileAtCoordinates(int x, int y) {
-        int row = y / 32;
-        int column = x / 32;
+        int tileSize = 32;
+        
+        int row = y / tileSize;
+        int column = x / tileSize;
 
         if (row >= 0 && row < gamePanel.getMaxScreenRow() && column >= 0 && column < gamePanel.getMaxScreenColumn()) {
             return tiles[row][column];
         }
-        return null; // nera tokio tile
+        return null;
     }
 
 }
